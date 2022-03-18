@@ -5,5 +5,5 @@ import org.springframework.data.repository.CrudRepository;
 
 
 public interface RequestRepository extends CrudRepository<Request, Integer>{
-	Iterable<Request> findByStatusAndNotUserId(String status, int userId);
+	Iterable<Request> findByStatusAndUserIdNot(String status, int userId);
 }

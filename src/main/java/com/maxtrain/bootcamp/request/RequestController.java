@@ -41,7 +41,7 @@ public class RequestController {
 	//GET ALL Requests WHERE STATUS IS "REVIEW"
 		@GetMapping("reviews/{userId}")
 		public ResponseEntity<Iterable<Request>>getRequestsInReview(@PathVariable int userId){
-			var req = reqRepo.findByStatusAndNotUserId("REVIEW", userId);
+			var req = reqRepo.findByStatusAndUserIdNot("REVIEW", userId);
 			return new ResponseEntity<Iterable<Request>>(req, HttpStatus.OK);
 		}
 	

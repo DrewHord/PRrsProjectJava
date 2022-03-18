@@ -52,17 +52,21 @@ public class RequestlineController {
 	}
 		
 	@PostMapping
-	public ResponseEntity<Requestline> postRequestline(@RequestBody Requestline requestline){
+	public ResponseEntity<Requestline> postRequestline(@RequestBody Requestline requestline) throws Exception{
 		if(requestline == null || requestline.getId() != 0) {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 		var reqln = reqlnRepo.save(requestline);
+		var respEntity = this.recalcRequestTotal(reqln.getRequest().getId());
+		if(respEntity.getStatusCode() != HttpStatus.OK) {
+			throw new Exception("Recalculate request tot failed!");
+		}
 		return new ResponseEntity<Requestline>(HttpStatus.CREATED);	
 	}
 	
 	@SuppressWarnings("rawtypes")
 	@PutMapping("{id}")
-	public ResponseEntity putRequestline(@PathVariable int id, @RequestBody Requestline requestline) {
+	public ResponseEntity putRequestline(@PathVariable int id, @RequestBody Requestline requestline) throws Exception {
 		if(requestline == null || requestline.getId()== 0) {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
@@ -70,20 +74,30 @@ public class RequestlineController {
 		if(reqln.isEmpty()) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-		reqlnRepo.save(requestline);
+			var reql =reqln.get();
+			reqlnRepo.save(reql);
+			var respEntity = this.recalcRequestTotal(reql.getRequest().getId());
+			if(respEntity.getStatusCode() != HttpStatus.OK) {
+				throw new Exception("Recalculate request total failed!");
+			}		
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
 	
-	@SuppressWarnings("rawtypes")
-	@DeleteMapping("{id}")
-	public ResponseEntity deleteRequestline(@PathVariable int id) {
-		var reqln = reqlnRepo.findById(id);
-		if(reqln.isEmpty()) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);			
+		@SuppressWarnings("rawtypes")
+		@DeleteMapping("{id}")
+		public ResponseEntity deleteRequestline(@PathVariable int id) throws Exception {
+			var requestOpt = reqlnRepo.findById(id);
+			if(requestOpt.isEmpty()) {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			}
+			var request = requestOpt.get();
+			reqlnRepo.delete(request);
+			var respEntity = this.recalcRequestTotal(request.getId());
+			if(respEntity.getStatusCode() != HttpStatus.OK) {
+				throw new Exception("Recalculate request total failed!");
+			}
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		}
-		reqlnRepo.delete(reqln.get());
-		return new ResponseEntity<>(HttpStatus.NO_CONTENT);		
-	}
 
 }
